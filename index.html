@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DevEval — Avaliação de Desenvolvedores</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fontes: Sora (UI) + JetBrains Mono (código/dados) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ── Base ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --amber:    #f59e0b;
+      --amber-dk: #b45309;
+      --bg:       #0f0f11;
+      --surface:  #18181c;
+      --border:   #27272f;
+      --text:     #e4e4e7;
+    }
+
+    body {
+      font-family: 'Sora', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Scrollbar personalizada ──────────────────────────────── */
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 9999px; }
+
+    /* ── Layout: Panel ───────────────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    /* ── Tipografia ──────────────────────────────────────────── */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #a1a1aa;
+      letter-spacing: -0.01em;
+    }
+    .icon-badge {
+      color: var(--amber);
+      font-size: 1.25rem;
+    }
+
+    /* ── Inputs ──────────────────────────────────────────────── */
+    .input {
+      background: #0f0f11;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .input:focus { border-color: var(--amber); }
+    .input option { background: #1c1c22; }
+
+    /* ── Botões ──────────────────────────────────────────────── */
+    .btn-primary {
+      background: var(--amber);
+      color: #0f0f11;
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { background: #fbbf24; }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .btn-secondary {
+      background: #27272f;
+      color: #d4d4d8;
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #3f3f46;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-secondary:hover { background: #323239; }
+
+    .btn-danger-sm {
+      background: transparent;
+      color: #71717a;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      line-height: 1;
+    }
+    .btn-danger-sm:hover { color: #f87171; border-color: #7f1d1d; background: #7f1d1d22; }
+
+    /* ── Badges & Tags ───────────────────────────────────────── */
+    .squad-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 8px;
+      background: #27272f;
+      border: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 0.875rem;
+      color: var(--amber);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .dev-type-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+    .badge-fe { background: #1e3a5f; color: #60a5fa; border: 1px solid #1d4ed8; }
+    .badge-be { background: #1a3323; color: #4ade80; border: 1px solid #166534; }
+
+    .tag-neutral {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      background: #27272f;
+      color: #71717a;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .voter-avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      background: #27272f;
+      border: 1px solid #3f3f46;
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--amber);
+      flex-shrink: 0;
+    }
+    .voter-avatar-sm {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      background: #27272f;
+      border: 1px solid #3f3f46;
+      font-weight: 600;
+      font-size: 0.65rem;
+      color: var(--amber);
+      flex-shrink: 0;
+    }
+
+    /* ── Score Pills ─────────────────────────────────────────── */
+    .score-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+    }
+    .score-pill-sm {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.75rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 5px;
+    }
+    .score-high { color: #4ade80; background: #052e16; border: 1px solid #166534; }
+    .score-mid  { color: #fbbf24; background: #1c1000; border: 1px solid #92400e; }
+    .score-low  { color: #f87171; background: #1f0606; border: 1px solid #7f1d1d; }
+
+    /* ── Rows (devs, voters) ─────────────────────────────────── */
+    .dev-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      background: #0f0f11;
+      border: 1px solid transparent;
+      transition: border-color 0.15s;
+      gap: 0.75rem;
+    }
+    .dev-row:hover { border-color: #3f3f46; }
+
+    /* ── Seleção em avaliação ────────────────────────────────── */
+    .select-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      gap: 0.5rem;
+    }
+    .select-row:hover:not(:disabled) { background: #27272f; border-color: #3f3f46; }
+    .select-row-active {
+      background: #1c1000 !important;
+      border-color: var(--amber-dk) !important;
+    }
+    .select-row-disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Formulário de avaliação ─────────────────────────────── */
+    .criterion-row {
+      padding: 0.75rem;
+      background: #0f0f11;
+      border-radius: 8px;
+      border: 1px solid #27272f;
+    }
+
+    /* Range slider customizado */
+    .score-range {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: #3f3f46;
+      border-radius: 9999px;
+      outline: none;
+      cursor: pointer;
+    }
+    .score-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--amber);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .score-range::-webkit-slider-thumb:hover { transform: scale(1.25); }
+    .score-range::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--amber);
+      border: none;
+      cursor: pointer;
+    }
+
+    /* ── Estado vazio ────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #52525b;
+      font-size: 0.875rem;
+      border: 1px dashed #27272f;
+      border-radius: 12px;
+    }
+
+    /* ── Navegação ───────────────────────────────────────────── */
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: none;
+      font-family: 'Sora', sans-serif;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .nav-btn-active {
+      background: #1c1000;
+      color: var(--amber);
+      border: 1px solid var(--amber-dk);
+    }
+    .nav-btn-inactive {
+      background: transparent;
+      color: #71717a;
+      border: 1px solid transparent;
+    }
+    .nav-btn-inactive:hover { background: #27272f; color: #a1a1aa; }
+    .nav-icon { font-size: 1rem; }
+
+    /* ── Toast ───────────────────────────────────────────────── */
+    #toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      pointer-events: none;
+    }
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      box-shadow: 0 8px 32px #00000055;
+      transform: translateX(110%);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s;
+      opacity: 0;
+      max-width: 340px;
+      border: 1px solid transparent;
+    }
+    .toast-show { transform: translateX(0); opacity: 1; }
+    .toast-hide { transform: translateX(110%); opacity: 0; }
+    .toast-icon { font-size: 1rem; flex-shrink: 0; }
+    .toast-success { background: #052e16; border-color: #166534; color: #86efac; }
+    .toast-warn    { background: #1c1000; border-color: #92400e; color: #fde68a; }
+    .toast-info    { background: #18181c; border-color: #3f3f46; color: #a1a1aa; }
+
+    /* ── Header logo pulse ───────────────────────────────────── */
+    @keyframes pulse-amber {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.5; }
+    }
+    .logo-dot { animation: pulse-amber 2.5s ease-in-out infinite; }
+
+    /* ── Responsividade mobile ───────────────────────────────── */
+    @media (max-width: 640px) {
+      .nav-btn span:last-child { display: none; }
+      .nav-btn { padding: 0.5rem 0.75rem; }
+    }
+  </style>
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+  <!-- ── Header ──────────────────────────────────────────────────────── -->
+  <header class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+
+      <!-- Logo -->
+      <div class="flex items-center gap-2">
+        <span class="font-mono font-bold text-amber-400 text-lg tracking-tight">
+          Dev<span class="text-zinc-400">Eval</span>
+        </span>
+        <span class="logo-dot w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+      </div>
+
+      <!-- Navegação -->
+      <nav id="app-nav" class="flex items-center gap-1"></nav>
+
+      <!-- Spinner global (visível durante calls async) -->
+      <span id="global-spinner" style="display:none"
+        class="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin ml-3">
+      </span>
+
+    </div>
+  </header>
+
+  <!-- ── Conteúdo principal ──────────────────────────────────────────── -->
+  <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
+    <div id="app-content">
+      <!-- Renderizado via JS -->
+    </div>
+  </main>
+
+  <!-- ── Footer ──────────────────────────────────────────────────────── -->
+  <footer class="border-t border-zinc-800 py-3 text-center">
+    <span class="text-zinc-700 text-xs font-mono">deveval • dados salvos localmente</span>
+  </footer>
+
+  <!-- ── Container de Toasts ────────────────────────────────────────── -->
+  <div id="toast-container"></div>
+
+  <!-- ── Scripts (ordem importa: supabase → config → storage → views → app) ── -->
+  <!-- SDK do Supabase via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Credenciais do projeto (edite js/config.js com sua URL e chave) -->
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/squads.js"></script>
+  <script src="js/voters.js"></script>
+  <script src="js/evaluation.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
