@@ -147,8 +147,30 @@
       font-family: 'JetBrains Mono', monospace;
       letter-spacing: 0.05em;
     }
-    .badge-fe { background: #1e3a5f; color: #60a5fa; border: 1px solid #1d4ed8; }
-    .badge-be { background: #1a3323; color: #4ade80; border: 1px solid #166534; }
+    .badge-fe   { background: #1e3a5f; color: #60a5fa; border: 1px solid #1d4ed8; }
+    .badge-be   { background: #1a3323; color: #4ade80; border: 1px solid #166534; }
+    .badge-po   { background: #2d1b69; color: #c4b5fd; border: 1px solid #6d28d9; }
+    .badge-sm   { background: #1a2e22; color: #6ee7b7; border: 1px solid #047857; }
+    .badge-both { background: #27272f; color: #a1a1aa; border: 1px solid #52525b; }
+
+    /* ── Links de repositório ─────────────────────────────────── */
+    .repo-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .repo-link-fe { background: #1e3a5f; color: #93c5fd; border: 1px solid #1d4ed8; }
+    .repo-link-fe:hover { background: #1d4ed8; color: #fff; }
+    .repo-link-be { background: #1a3323; color: #6ee7b7; border: 1px solid #166534; }
+    .repo-link-be:hover { background: #166534; color: #fff; }
+    .repo-link-arrow { font-size: 0.85rem; }
 
     .tag-neutral {
       font-size: 0.7rem;

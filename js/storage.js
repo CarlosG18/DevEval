@@ -1,12 +1,12 @@
 /**
  * storage.js
- * Módulo de persistência — agora usando Supabase como backend.
- * Todos os métodos são assíncronos (retornam Promise).
+ * Módulo de persistência — Supabase.
+ * v2: suporte a repo_frontend/repo_backend em squads,
+ *     role em developers, voter_type em voters.
  */
 
 const Storage = (() => {
 
-  // ── Cliente Supabase ───────────────────────────────────────────────────────
   let _client = null;
 
   function getClient() {
@@ -19,8 +19,6 @@ const Storage = (() => {
     }
     return _client;
   }
-
-  // ── Helpers ────────────────────────────────────────────────────────────────
 
   function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -40,8 +38,19 @@ const Storage = (() => {
     );
   }
 
-  async function addSquad(name) {
-    const squad = { id: generateId(), name: name.trim(), created_at: Date.now() };
+  /**
+   * @param {string} name
+   * @param {string} repoFrontend - URL do repositório frontend (opcional)
+   * @param {string} repoBackend  - URL do repositório backend (opcional)
+   */
+  async function addSquad(name, repoFrontend = '', repoBackend = '') {
+    const squad = {
+      id: generateId(),
+      name: name.trim(),
+      repo_frontend: repoFrontend.trim() || null,
+      repo_backend:  repoBackend.trim()  || null,
+      created_at: Date.now(),
+    };
     await run(getClient().from('squads').insert(squad));
     return squad;
   }
@@ -56,12 +65,24 @@ const Storage = (() => {
     const rows = await run(
       getClient().from('developers').select('*').order('created_at', { ascending: true })
     );
-    // Normaliza snake_case do banco para camelCase esperado pelas views
     return rows.map(r => ({ ...r, squadId: r.squad_id }));
   }
 
-  async function addDeveloper(name, squadId, type) {
-    const dev = { id: generateId(), name: name.trim(), squad_id: squadId, type, created_at: Date.now() };
+  /**
+   * @param {string} name
+   * @param {string} squadId
+   * @param {'frontend'|'backend'} type
+   * @param {'po'|'scrum_master'|''} role - papel no projeto (opcional)
+   */
+  async function addDeveloper(name, squadId, type, role = '') {
+    const dev = {
+      id: generateId(),
+      name: name.trim(),
+      squad_id: squadId,
+      type,
+      role: role || null,
+      created_at: Date.now(),
+    };
     await run(getClient().from('developers').insert(dev));
     return { ...dev, squadId };
   }
@@ -78,8 +99,17 @@ const Storage = (() => {
     );
   }
 
-  async function addVoter(name) {
-    const voter = { id: generateId(), name: name.trim(), created_at: Date.now() };
+  /**
+   * @param {string} name
+   * @param {'frontend'|'backend'|'both'} voterType - categoria do votante
+   */
+  async function addVoter(name, voterType = 'both') {
+    const voter = {
+      id: generateId(),
+      name: name.trim(),
+      voter_type: voterType,
+      created_at: Date.now(),
+    };
     await run(getClient().from('voters').insert(voter));
     return voter;
   }

@@ -1,31 +1,41 @@
 /**
- * squads.js
- * View de Squads e Desenvolvedores — refatorada para async/await com Supabase.
+ * squads.js  v2
+ * Gerenciamento de Squads e Desenvolvedores.
+ * Novidades: campos de repositório por squad, papel (PO/SM) por dev.
  */
 
 const SquadsView = (() => {
 
-  /** Renderiza a view completa */
+  // Rótulos dos papéis
+  const ROLE_LABELS = { po: 'PO', scrum_master: 'SM' };
+  const ROLE_COLORS = { po: 'badge-po', scrum_master: 'badge-sm' };
+
   async function render() {
     const content = document.getElementById('app-content');
     content.innerHTML = renderSkeleton();
-
     try {
       const [squads, developers] = await Promise.all([
         Storage.getSquads(),
         Storage.getDevelopers(),
       ]);
-
       content.innerHTML = `
         <div class="space-y-8">
+
+          <!-- Form de criação de squad -->
           <div class="panel">
             <h2 class="section-title"><span class="icon-badge">⬡</span> Squads</h2>
-            <div class="flex gap-3 mt-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
               <input id="squad-name-input" type="text" placeholder="Nome do squad..."
-                class="input flex-1"
+                class="input"
                 onkeydown="if(event.key==='Enter') SquadsView.handleAddSquad()" />
-              <button onclick="SquadsView.handleAddSquad()" class="btn-primary">+ Criar Squad</button>
+              <input id="squad-repo-fe" type="url" placeholder="Repo Frontend (opcional)"
+                class="input" />
+              <input id="squad-repo-be" type="url" placeholder="Repo Backend (opcional)"
+                class="input" />
             </div>
+            <button onclick="SquadsView.handleAddSquad()" class="btn-primary mt-3">
+              + Criar Squad
+            </button>
           </div>
 
           ${squads.length === 0
@@ -41,17 +51,40 @@ const SquadsView = (() => {
 
   function renderSquadCard(squad, allDevelopers) {
     const devs = allDevelopers.filter(d => d.squadId === squad.id);
+    const hasRepos = squad.repo_frontend || squad.repo_backend;
+
     return `
       <div class="panel squad-card" id="squad-${squad.id}">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3">
+
+        <!-- Cabeçalho -->
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center gap-3 flex-wrap">
             <span class="squad-badge">${squad.name.charAt(0).toUpperCase()}</span>
             <h3 class="text-lg font-semibold text-amber-300 font-mono">${esc(squad.name)}</h3>
             <span class="tag-neutral">${devs.length} dev${devs.length !== 1 ? 's' : ''}</span>
           </div>
-          <button onclick="SquadsView.handleDeleteSquad('${squad.id}','${esc(squad.name)}')" class="btn-danger-sm">✕</button>
+          <button onclick="SquadsView.handleDeleteSquad('${squad.id}','${esc(squad.name)}')" class="btn-danger-sm mt-0.5">✕</button>
         </div>
 
+        <!-- Links de repositório -->
+        ${hasRepos ? `
+          <div class="flex flex-wrap gap-2 mb-4">
+            ${squad.repo_frontend ? `
+              <a href="${esc(squad.repo_frontend)}" target="_blank" rel="noopener"
+                class="repo-link repo-link-fe">
+                <span>⬡</span> Frontend
+                <span class="repo-link-arrow">↗</span>
+              </a>` : ''}
+            ${squad.repo_backend ? `
+              <a href="${esc(squad.repo_backend)}" target="_blank" rel="noopener"
+                class="repo-link repo-link-be">
+                <span>◈</span> Backend
+                <span class="repo-link-arrow">↗</span>
+              </a>` : ''}
+          </div>
+        ` : ''}
+
+        <!-- Lista de devs -->
         <div class="space-y-2 mb-4">
           ${devs.length === 0
             ? `<p class="text-zinc-500 text-sm italic">Nenhum desenvolvedor neste squad.</p>`
@@ -59,17 +92,25 @@ const SquadsView = (() => {
           }
         </div>
 
+        <!-- Form de adição de dev -->
         <div class="border-t border-zinc-700 pt-4">
           <p class="text-xs text-zinc-400 mb-2 font-mono uppercase tracking-widest">Adicionar Desenvolvedor</p>
           <div class="flex gap-2 flex-wrap">
             <input id="dev-name-${squad.id}" type="text" placeholder="Nome do dev..."
-              class="input flex-1 min-w-[160px]"
+              class="input flex-1 min-w-[140px]"
               onkeydown="if(event.key==='Enter') SquadsView.handleAddDeveloper('${squad.id}')" />
-            <select id="dev-type-${squad.id}" class="input w-36">
+            <select id="dev-type-${squad.id}" class="input w-32">
               <option value="frontend">Frontend</option>
               <option value="backend">Backend</option>
             </select>
-            <button onclick="SquadsView.handleAddDeveloper('${squad.id}')" class="btn-secondary">+ Adicionar</button>
+            <select id="dev-role-${squad.id}" class="input w-40">
+              <option value="">Nenhum papel</option>
+              <option value="po">Product Owner (PO)</option>
+              <option value="scrum_master">Scrum Master (SM)</option>
+            </select>
+            <button onclick="SquadsView.handleAddDeveloper('${squad.id}')" class="btn-secondary">
+              + Adicionar
+            </button>
           </div>
         </div>
       </div>
@@ -79,10 +120,14 @@ const SquadsView = (() => {
   function renderDevRow(dev) {
     return `
       <div class="dev-row">
-        <div class="flex items-center gap-3 flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
           <span class="dev-type-badge ${dev.type === 'frontend' ? 'badge-fe' : 'badge-be'}">
             ${dev.type === 'frontend' ? 'FE' : 'BE'}
           </span>
+          ${dev.role ? `
+            <span class="dev-type-badge ${ROLE_COLORS[dev.role]}">
+              ${ROLE_LABELS[dev.role]}
+            </span>` : ''}
           <span class="text-zinc-200 truncate">${esc(dev.name)}</span>
         </div>
         <button onclick="SquadsView.handleDeleteDeveloper('${dev.id}','${esc(dev.name)}')" class="btn-danger-sm">✕</button>
@@ -90,15 +135,18 @@ const SquadsView = (() => {
     `;
   }
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
+  // ── Handlers ──────────────────────────────────────────────────────────────
 
   async function handleAddSquad() {
-    const input = document.getElementById('squad-name-input');
-    const name = input.value.trim();
+    const name      = document.getElementById('squad-name-input').value.trim();
+    const repoFe    = document.getElementById('squad-repo-fe').value.trim();
+    const repoBack  = document.getElementById('squad-repo-be').value.trim();
+
     if (!name) return showToast('Digite o nome do squad.', 'warn');
+
     try {
       setLoading(true);
-      await Storage.addSquad(name);
+      await Storage.addSquad(name, repoFe, repoBack);
       showToast(`Squad "${name}" criado!`, 'success');
       await render();
     } catch (err) {
@@ -119,14 +167,15 @@ const SquadsView = (() => {
   }
 
   async function handleAddDeveloper(squadId) {
-    const nameInput = document.getElementById(`dev-name-${squadId}`);
-    const typeSelect = document.getElementById(`dev-type-${squadId}`);
-    const name = nameInput.value.trim();
+    const name = document.getElementById(`dev-name-${squadId}`).value.trim();
+    const type = document.getElementById(`dev-type-${squadId}`).value;
+    const role = document.getElementById(`dev-role-${squadId}`).value;
+
     if (!name) return showToast('Digite o nome do desenvolvedor.', 'warn');
     try {
       setLoading(true);
-      await Storage.addDeveloper(name, squadId, typeSelect.value);
-      showToast(`${name} adicionado!`, 'success');
+      await Storage.addDeveloper(name, squadId, type, role);
+      showToast(`${name} adicionado${role ? ` como ${role === 'po' ? 'PO' : 'SM'}` : ''}!`, 'success');
       await render();
     } catch (err) {
       showToast(err.message.includes('unique') ? 'Dev já existe neste squad.' : err.message, 'warn');
@@ -145,9 +194,9 @@ const SquadsView = (() => {
     } finally { setLoading(false); }
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
   function esc(str) {
-    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    return String(str).replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
   return { render, handleAddSquad, handleDeleteSquad, handleAddDeveloper, handleDeleteDeveloper };
