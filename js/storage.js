@@ -43,12 +43,13 @@ const Storage = (() => {
    * @param {string} repoFrontend - URL do repositório frontend (opcional)
    * @param {string} repoBackend  - URL do repositório backend (opcional)
    */
-  async function addSquad(name, repoFrontend = '', repoBackend = '') {
+  async function addSquad(name, repoFrontend = '', repoBackend = '', deployUrl = '') {
     const squad = {
       id: generateId(),
       name: name.trim(),
       repo_frontend: repoFrontend.trim() || null,
       repo_backend:  repoBackend.trim()  || null,
+      deploy_url:    deployUrl.trim()    || null,
       created_at: Date.now(),
     };
     await run(getClient().from('squads').insert(squad));

@@ -98,7 +98,7 @@ const EvaluationView = (() => {
           </div>
 
           <!-- Repos do squad (visível quando um dev está selecionado) -->
-          ${selectedSquad && (selectedSquad.repo_frontend || selectedSquad.repo_backend) ? `
+          ${selectedSquad && (selectedSquad.repo_frontend || selectedSquad.repo_backend || selectedSquad.deploy_url) ? `
             <div class="panel border border-zinc-700/60">
               <p class="text-xs text-zinc-500 font-mono uppercase tracking-widest mb-2">
                 Repositórios — ${esc(selectedSquad.name)}
@@ -113,6 +113,11 @@ const EvaluationView = (() => {
                   <a href="${esc(selectedSquad.repo_backend)}" target="_blank" rel="noopener"
                     class="repo-link repo-link-be">
                     <span>◈</span> Backend <span class="repo-link-arrow">↗</span>
+                  </a>` : ''}
+                ${selectedSquad.deploy_url ? `
+                  <a href="${esc(selectedSquad.deploy_url)}" target="_blank" rel="noopener"
+                    class="repo-link repo-link-deploy">
+                    <span>▲</span> Deploy <span class="repo-link-arrow">↗</span>
                   </a>` : ''}
               </div>
             </div>

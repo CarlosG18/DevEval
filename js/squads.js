@@ -24,14 +24,16 @@ const SquadsView = (() => {
           <!-- Form de criação de squad -->
           <div class="panel">
             <h2 class="section-title"><span class="icon-badge">⬡</span> Squads</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
               <input id="squad-name-input" type="text" placeholder="Nome do squad..."
-                class="input"
+                class="input sm:col-span-2"
                 onkeydown="if(event.key==='Enter') SquadsView.handleAddSquad()" />
               <input id="squad-repo-fe" type="url" placeholder="Repo Frontend (opcional)"
                 class="input" />
               <input id="squad-repo-be" type="url" placeholder="Repo Backend (opcional)"
                 class="input" />
+              <input id="squad-deploy" type="url" placeholder="Link do Deploy (opcional)"
+                class="input sm:col-span-2" />
             </div>
             <button onclick="SquadsView.handleAddSquad()" class="btn-primary mt-3">
               + Criar Squad
@@ -51,7 +53,7 @@ const SquadsView = (() => {
 
   function renderSquadCard(squad, allDevelopers) {
     const devs = allDevelopers.filter(d => d.squadId === squad.id);
-    const hasRepos = squad.repo_frontend || squad.repo_backend;
+    const hasRepos = squad.repo_frontend || squad.repo_backend || squad.deploy_url;
 
     return `
       <div class="panel squad-card" id="squad-${squad.id}">
@@ -79,6 +81,12 @@ const SquadsView = (() => {
               <a href="${esc(squad.repo_backend)}" target="_blank" rel="noopener"
                 class="repo-link repo-link-be">
                 <span>◈</span> Backend
+                <span class="repo-link-arrow">↗</span>
+              </a>` : ''}
+            ${squad.deploy_url ? `
+              <a href="${esc(squad.deploy_url)}" target="_blank" rel="noopener"
+                class="repo-link repo-link-deploy">
+                <span>▲</span> Deploy
                 <span class="repo-link-arrow">↗</span>
               </a>` : ''}
           </div>
@@ -141,12 +149,13 @@ const SquadsView = (() => {
     const name      = document.getElementById('squad-name-input').value.trim();
     const repoFe    = document.getElementById('squad-repo-fe').value.trim();
     const repoBack  = document.getElementById('squad-repo-be').value.trim();
+    const deployUrl = document.getElementById('squad-deploy').value.trim();
 
     if (!name) return showToast('Digite o nome do squad.', 'warn');
 
     try {
       setLoading(true);
-      await Storage.addSquad(name, repoFe, repoBack);
+      await Storage.addSquad(name, repoFe, repoBack, deployUrl);
       showToast(`Squad "${name}" criado!`, 'success');
       await render();
     } catch (err) {
