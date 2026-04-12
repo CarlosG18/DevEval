@@ -10,8 +10,8 @@
 const EvaluationView = (() => {
 
   const FRONTEND_CRITERIA = [
-    { key: 'project_types',   label: 'Noção de Tipos de Projetos' },
-    { key: 'visual_notions',  label: 'Boas Noções Visuais' },
+    { key: 'project_types',   label: 'Aplicação de HTML semantico' },
+    { key: 'visual_notions',  label: 'Criação dos componentes (Modais, Carrosseis, sliders...)' },
     { key: 'mockup_fidelity', label: 'Fidelidade ao Mockup' },
     { key: 'gitflow',         label: 'GitFlow' },
     { key: 'code_org',        label: 'Boas Práticas de Organização de Código' },
@@ -105,17 +105,17 @@ const EvaluationView = (() => {
               </p>
               <div class="flex flex-wrap gap-2">
                 ${selectedSquad.repo_frontend ? `
-                  <a href="${esc(selectedSquad.repo_frontend)}" target="_blank" rel="noopener"
+                  <a href="${safeHref(selectedSquad.repo_frontend)}" target="_blank" rel="noopener"
                     class="repo-link repo-link-fe">
                     <span>⬡</span> Frontend <span class="repo-link-arrow">↗</span>
                   </a>` : ''}
                 ${selectedSquad.repo_backend ? `
-                  <a href="${esc(selectedSquad.repo_backend)}" target="_blank" rel="noopener"
+                  <a href="${safeHref(selectedSquad.repo_backend)}" target="_blank" rel="noopener"
                     class="repo-link repo-link-be">
                     <span>◈</span> Backend <span class="repo-link-arrow">↗</span>
                   </a>` : ''}
                 ${selectedSquad.deploy_url ? `
-                  <a href="${esc(selectedSquad.deploy_url)}" target="_blank" rel="noopener"
+                  <a href="${safeHref(selectedSquad.deploy_url)}" target="_blank" rel="noopener"
                     class="repo-link repo-link-deploy">
                     <span>▲</span> Deploy <span class="repo-link-arrow">↗</span>
                   </a>` : ''}
@@ -447,6 +447,10 @@ const EvaluationView = (() => {
   function esc(str) {
     return String(str).replace(/[&<>"']/g, c =>
       ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  /** Para uso em atributos href — só escapa " para não quebrar o atributo */
+  function safeHref(url) {
+    return String(url || '').replace(/"/g, '%22');
   }
   function scoreClass(avg) {
     const n = parseFloat(avg);
