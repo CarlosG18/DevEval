@@ -11,7 +11,7 @@ const EvaluationView = (() => {
 
   const FRONTEND_CRITERIA = [
     { key: 'project_types',   label: 'Aplicação de HTML semantico' },
-    { key: 'visual_notions',  label: 'Criação dos componentes (Modais, Carrosseis, sliders...)' },
+    { key: 'visual_notions',  label: 'Criação dos componentes (Modais, Carrosseis, sliders...' },
     { key: 'mockup_fidelity', label: 'Fidelidade ao Mockup' },
     { key: 'gitflow',         label: 'GitFlow' },
     { key: 'code_org',        label: 'Boas Práticas de Organização de Código' },
@@ -398,7 +398,7 @@ const EvaluationView = (() => {
   }
 
   function recalcPreview() {
-    const sliders = document.querySelectorAll('[id^="score-"]');
+    const sliders = document.querySelectorAll('input[id^="score-"]');
     let total = 0, count = 0;
     sliders.forEach(s => {
       if (s.dataset.touched === 'true') { total += parseFloat(s.value); count++; }
@@ -419,7 +419,7 @@ const EvaluationView = (() => {
     if (!state.selectedDevId || !state.selectedVoterId) {
       return showToast('Selecione desenvolvedor e votante.', 'warn');
     }
-    const sliders = document.querySelectorAll('[id^="score-"]');
+    const sliders = document.querySelectorAll('input[id^="score-"]');
     const scores = {};
     let allFilled = true;
     sliders.forEach(s => {
