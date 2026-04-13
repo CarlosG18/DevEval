@@ -33,8 +33,9 @@ const Storage = (() => {
   // ── Squads ────────────────────────────────────────────────────────────────
 
   async function getSquads() {
-    return run(
-      getClient().from('squads').select('*').order('created_at', { ascending: true })
+    const rows = await run(getClient().from('squads').select('*'));
+    return rows.sort((a, b) =>
+      a.name.localeCompare(b.name, 'pt-BR', { numeric: true, sensitivity: 'base' })
     );
   }
 
