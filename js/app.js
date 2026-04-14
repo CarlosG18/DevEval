@@ -9,12 +9,14 @@ const App = (() => {
   let currentPage = 'squads';
 
   const views = {
+    dashboard:  DashboardView,
     squads:     SquadsView,
     voters:     VotersView,
     evaluation: EvaluationView,
   };
 
   const navItems = [
+    { id: 'dashboard',  label: 'Dashboard',    icon: '◉' },
     { id: 'squads',     label: 'Squads & Devs', icon: '⬡' },
     { id: 'voters',     label: 'Votantes',       icon: '◈' },
     { id: 'evaluation', label: 'Avaliação',       icon: '◎' },
@@ -26,7 +28,7 @@ const App = (() => {
     // Verifica configuração antes de qualquer chamada ao Supabase
     try {
       Storage.getClient(); // lança CONFIG_MISSING se não configurado
-      await navigate('squads');
+      await navigate('dashboard');
     } catch (err) {
       if (err.message === 'CONFIG_MISSING') {
         renderConfigScreen();
