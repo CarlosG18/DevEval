@@ -21,7 +21,7 @@ const EvaluationView = (() => {
 
   const BACKEND_CRITERIA = [
     { key: 'documentation',   label: 'Documentação' },
-    { key: 'logic',           label: 'Boas Noções de Lógica' },
+    { key: 'logic',           label: 'Dinamização aplicada' },
     { key: 'gitflow',         label: 'GitFlow' },
     { key: 'code_org',        label: 'Organização de Código' },
     { key: 'databases',       label: 'Bancos de Dados e Modelagem' },
